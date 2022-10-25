@@ -10,8 +10,8 @@ public class StartService extends TelegramServiceImpl {
     SendMessage message = new SendMessage();;
 
     @Override
-    public void handle(Update update) {
-        super.handle(update);
+    public void handleCommand(Update update) {
+        super.handleCommand(update);
 
         String name = update.getMessage().getChat().getUserName();
         Long chatId = update.getMessage().getChatId();

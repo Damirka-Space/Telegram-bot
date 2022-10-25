@@ -9,8 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class HelpService extends TelegramServiceImpl {
     SendMessage message = new SendMessage();
     @Override
-    public void handle(Update update) {
-        super.handle(update);
+    public void handleCommand(Update update) {
+        super.handleCommand(update);
 
         message.setChatId(String.valueOf(update.getMessage().getChatId()));
         message.setText(BotCommands.getHelpText());

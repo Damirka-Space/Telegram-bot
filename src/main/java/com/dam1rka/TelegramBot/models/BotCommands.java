@@ -3,13 +3,16 @@ package com.dam1rka.TelegramBot.models;
 import com.dam1rka.TelegramBot.services.interfaces.ITelegramService;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
 import com.dam1rka.TelegramBot.services.telegram.HelpService;
+import com.dam1rka.TelegramBot.services.telegram.RegistrationService;
 import com.dam1rka.TelegramBot.services.telegram.StartService;
+import com.dam1rka.TelegramBot.services.telegram.TestService;
 
 public enum BotCommands {
     start,
     help,
     register,
-    myData;
+    myData,
+    test;
 
     @Override
     public String toString() {
@@ -25,6 +28,9 @@ public enum BotCommands {
             }
             case 3 -> {
                 return "/mydata";
+            }
+            case 4 -> {
+                return "/test";
             }
             default -> {
                 return "";
@@ -46,6 +52,9 @@ public enum BotCommands {
             case 3 -> {
                 return "to see data stored about yourself";
             }
+            case 4 -> {
+                return "just test";
+            }
             default -> {
                 return "";
             }
@@ -59,6 +68,12 @@ public enum BotCommands {
             }
             case 1 -> {
                 return new HelpService();
+            }
+            case 2 -> {
+                return new RegistrationService();
+            }
+            case 4 -> {
+                return new TestService();
             }
             default -> {
                 return new TelegramServiceImpl();

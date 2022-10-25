@@ -1,22 +1,44 @@
 package com.dam1rka.TelegramBot.services.telegram;
 
-import com.dam1rka.TelegramBot.services.TelegramBot;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-@Service
-@Slf4j
-public class RegistrationService {
+import java.util.ArrayList;
+import java.util.List;
 
-    private final TelegramBot telegramBot;
+public class RegistrationService extends TelegramServiceImpl {
 
-    @Autowired
-    public RegistrationService(TelegramBot telegramBot) {
-        this.telegramBot = telegramBot;
+    SendMessage message = new SendMessage();
+
+    @Override
+    public void handleCommand(Update update) {
+        super.handleCommand(update);
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        message.setReplyMarkup(keyboardMarkup);
+
+        List<KeyboardRow> keyboardRows = new ArrayList<>();
+        KeyboardRow keyboardRow = new KeyboardRow();
+        keyboardRow.add("Test");
+
+        keyboardRow.add("Test2");
+
+        keyboardRows.add(keyboardRow);
+        keyboardMarkup.setKeyboard(keyboardRows);
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+
+        message.setText("test");
+        message.setChatId(update.getMessage().getChatId());
     }
 
-
-
-
+    @Override
+    public BotApiMethod getResult() {
+        return message;
+    }
 }

@@ -9,10 +9,14 @@ public interface ITelegramService {
 
     ServiceStates state = ServiceStates.none;
 
+    // handle messages with /
+    void handleCommand(Update update);
 
-    void handle(Update update);
-
+    // returns result of command
     BotApiMethod getResult();
+
+    // handle all others messages
+    boolean handleMessage(Update update);
 
 
 }

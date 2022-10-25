@@ -3,7 +3,6 @@ package com.dam1rka.TelegramBot.services;
 import com.dam1rka.TelegramBot.config.BotConfig;
 import com.dam1rka.TelegramBot.models.BotCommands;
 import com.dam1rka.TelegramBot.services.interfaces.ITelegramService;
-import com.dam1rka.TelegramBot.services.telegram.StartService;
 import com.dam1rka.TelegramBot.services.telegram.UnknownCommandService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final HashMap<String, ITelegramService> services;
 
     private final UnknownCommandService unknownCommandService;
-
 
     @Autowired
     public TelegramBot(BotConfig config) {
@@ -67,18 +65,31 @@ public class TelegramBot extends TelegramLongPollingBot {
             ITelegramService service = services.get(messageText);
 
             if(Objects.nonNull(service)) {
-                service.handle(update);
+                service.handleCommand(update);
                 try {
                     execute(service.getResult());
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                unknownCommandService.handle(update);
-                try {
-                    execute(unknownCommandService.getResult());
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
+                if(messageText.startsWith("/")) {
+                    unknownCommandService.handleCommand(update);
+                    try {
+                        execute(unknownCommandService.getResult());
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    for (ITelegramService s : services.values()) {
+                        if(s.handleMessage(update)) {
+                            try {
+                                execute(s.getResult());
+                            } catch (TelegramApiException e) {
+                                throw new RuntimeException(e);
+                            }
+                            break;
+                        }
+                    }
                 }
             }
 
