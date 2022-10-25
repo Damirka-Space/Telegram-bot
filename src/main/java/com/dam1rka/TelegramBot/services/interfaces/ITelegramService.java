@@ -18,5 +18,7 @@ public interface ITelegramService {
     // handle all others messages
     boolean handleMessage(Update update);
 
+    boolean handleOther(Update update);
+
 
 }

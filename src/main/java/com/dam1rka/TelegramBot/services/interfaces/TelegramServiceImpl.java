@@ -22,4 +22,9 @@ public class TelegramServiceImpl implements ITelegramService {
     public boolean handleMessage(Update update) {
         return false;
     }
+
+    @Override
+    public boolean handleOther(Update update) {
+        return false;
+    }
 }

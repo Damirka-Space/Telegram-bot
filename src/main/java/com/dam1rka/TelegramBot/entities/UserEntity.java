@@ -13,7 +13,7 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long telegram_id;
+    private Long telegramId;
 
     private String username;
     private String phone;

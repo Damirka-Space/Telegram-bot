@@ -1,6 +1,6 @@
 package com.dam1rka.TelegramBot.services.telegram;
 
-import com.dam1rka.TelegramBot.models.BotCommands;
+import com.dam1rka.TelegramBot.models.BotServices;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -13,7 +13,7 @@ public class HelpService extends TelegramServiceImpl {
         super.handleCommand(update);
 
         message.setChatId(String.valueOf(update.getMessage().getChatId()));
-        message.setText(BotCommands.getHelpText());
+        message.setText(BotServices.getHelpText());
     }
 
     @Override

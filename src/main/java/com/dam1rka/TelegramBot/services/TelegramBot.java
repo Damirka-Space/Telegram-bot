@@ -1,7 +1,7 @@
 package com.dam1rka.TelegramBot.services;
 
 import com.dam1rka.TelegramBot.config.BotConfig;
-import com.dam1rka.TelegramBot.models.BotCommands;
+import com.dam1rka.TelegramBot.models.BotServices;
 import com.dam1rka.TelegramBot.services.interfaces.ITelegramService;
 import com.dam1rka.TelegramBot.services.telegram.UnknownCommandService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,19 +23,22 @@ import java.util.Objects;
 @Service
 public class TelegramBot extends TelegramLongPollingBot {
     private final BotConfig config;
+
+    private final BotServices botServices;
     private final List<BotCommand> listOfCommands;
     private final HashMap<String, ITelegramService> services;
 
     private final UnknownCommandService unknownCommandService;
 
     @Autowired
-    public TelegramBot(BotConfig config) {
+    public TelegramBot(BotConfig config, BotServices botServices) {
         this.config = config;
+        this.botServices = botServices;
         listOfCommands = new ArrayList<>();
         services = new HashMap<>();
-        for (BotCommands command : BotCommands.values()) {
+        for (BotServices.Commands command : BotServices.Commands.values()) {
             listOfCommands.add(new BotCommand(command.toString(), command.getDescription()));
-            services.put(command.toString(), command.getService());
+            services.put(command.toString(), botServices.getService(command));
         }
 
         unknownCommandService = new UnknownCommandService();
@@ -97,6 +100,18 @@ public class TelegramBot extends TelegramLongPollingBot {
             String callbackData = update.getCallbackQuery().getData();
             long messageId = update.getCallbackQuery().getMessage().getMessageId();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
+        }
+        else {
+            for (ITelegramService s : services.values()) {
+                if(s.handleOther(update)) {
+                    try {
+                        execute(s.getResult());
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                }
+            }
         }
     }
 
