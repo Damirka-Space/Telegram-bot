@@ -15,7 +15,7 @@ public class GetTrackService extends TelegramServiceImpl {
     public void handleCommand(Update update, TelegramBot bot) {
         super.handleCommand(update, bot);
         SendMessage message = new SendMessage();
-        message.setText("Enter number of track");
+        message.setText("Enter number of track or send url of track");
         message.setChatId(update.getMessage().getChatId());
 
         try {
@@ -27,28 +27,39 @@ public class GetTrackService extends TelegramServiceImpl {
 
     @Override
     public boolean handleMessage(Update update, TelegramBot bot){
+        SendAudio audio = new SendAudio();
+        audio.setChatId(update.getMessage().getChatId());
+
         if(StringUtils.isNumeric(update.getMessage().getText())) {
-            SendAudio audio = new SendAudio();
             audio.setTitle("Test");
             audio.setAudio(new InputFile("http://130.61.79.90:8090/api/track/get/" + update.getMessage().getText()));
+
+            sendAudio(update, bot, audio);
+            return true;
+        } else if (update.getMessage().getText().startsWith("http")) {
+            audio.setAudio(new InputFile(update.getMessage().getText()));
             audio.setChatId(update.getMessage().getChatId());
 
-            try {
-                bot.execute(audio);
-            } catch (TelegramApiException e) {
-                SendMessage message = new SendMessage();
-                message.setChatId(update.getMessage().getChatId());
-                message.setText("Sorry, can't upload track");
-                try {
-                    bot.execute(message);
-                } catch (TelegramApiException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-            return  true;
+            sendAudio(update, bot, audio);
+            return true;
         }
 
         return false;
+    }
+
+    private void sendAudio(Update update, TelegramBot bot, SendAudio audio) {
+        try {
+            bot.execute(audio);
+        } catch (TelegramApiException e) {
+            SendMessage message = new SendMessage();
+            message.setChatId(update.getMessage().getChatId());
+            message.setText("Sorry, can't upload track");
+            try {
+                bot.execute(message);
+            } catch (TelegramApiException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
 }
