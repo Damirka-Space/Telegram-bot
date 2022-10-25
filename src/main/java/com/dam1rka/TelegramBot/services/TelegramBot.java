@@ -68,30 +68,15 @@ public class TelegramBot extends TelegramLongPollingBot {
             ITelegramService service = services.get(messageText);
 
             if(Objects.nonNull(service)) {
-                service.handleCommand(update);
-                try {
-                    execute(service.getResult());
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
-                }
+                service.handleCommand(update, this);
             } else {
                 if(messageText.startsWith("/")) {
-                    unknownCommandService.handleCommand(update);
-                    try {
-                        execute(unknownCommandService.getResult());
-                    } catch (TelegramApiException e) {
-                        throw new RuntimeException(e);
-                    }
+                    unknownCommandService.handleCommand(update, this);
+
                 } else {
                     for (ITelegramService s : services.values()) {
-                        if(s.handleMessage(update)) {
-                            try {
-                                execute(s.getResult());
-                            } catch (TelegramApiException e) {
-                                throw new RuntimeException(e);
-                            }
+                        if(s.handleMessage(update, this))
                             break;
-                        }
                     }
                 }
             }
@@ -103,14 +88,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
         else {
             for (ITelegramService s : services.values()) {
-                if(s.handleOther(update)) {
-                    try {
-                        execute(s.getResult());
-                    } catch (TelegramApiException e) {
-                        throw new RuntimeException(e);
-                    }
+                if(s.handleOther(update, this))
                     break;
-                }
             }
         }
     }

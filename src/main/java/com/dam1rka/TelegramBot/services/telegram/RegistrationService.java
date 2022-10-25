@@ -2,11 +2,11 @@ package com.dam1rka.TelegramBot.services.telegram;
 
 import com.dam1rka.TelegramBot.entities.UserEntity;
 import com.dam1rka.TelegramBot.repositories.UserRepository;
+import com.dam1rka.TelegramBot.services.TelegramBot;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
 import com.vdurmont.emoji.EmojiParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Contact;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,8 +32,8 @@ public class RegistrationService extends TelegramServiceImpl {
     SendMessage message = new SendMessage();
 
     @Override
-    public void handleCommand(Update update) {
-        super.handleCommand(update);
+    public void handleCommand(Update update, TelegramBot bot) {
+        super.handleCommand(update, bot);
 
         if(Objects.nonNull(userRepository.findByTelegramId(update.getMessage().getFrom().getId()))) {
             message.setText(EmojiParser.parseToUnicode("Your already registered :open_mouth:"));
@@ -57,11 +58,17 @@ public class RegistrationService extends TelegramServiceImpl {
 
             message.setText(EmojiParser.parseToUnicode("Please, send your contact for complete registration :innocent:"));
             message.setChatId(update.getMessage().getChatId());
+
+            try {
+                bot.execute(message);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
-    public boolean handleOther(Update update) {
+    public boolean handleOther(Update update, TelegramBot bot) {
         if(update.getMessage().hasContact()) {
             Contact contact = update.getMessage().getContact();
 
@@ -78,13 +85,15 @@ public class RegistrationService extends TelegramServiceImpl {
             }
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
             message.setChatId(update.getMessage().getChatId());
+
+            try {
+                bot.execute(message);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+
             return true;
         }
         return false;
-    }
-
-    @Override
-    public BotApiMethod getResult() {
-        return message;
     }
 }
