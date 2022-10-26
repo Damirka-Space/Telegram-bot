@@ -58,12 +58,12 @@ public class RegistrationService extends TelegramServiceImpl {
 
             message.setText(EmojiParser.parseToUnicode("Please, send your contact for complete registration :innocent:"));
             message.setChatId(update.getMessage().getChatId());
+        }
 
-            try {
-                bot.execute(message);
-            } catch (TelegramApiException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            bot.execute(message);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 
