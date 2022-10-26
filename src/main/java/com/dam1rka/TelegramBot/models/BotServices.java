@@ -34,7 +34,7 @@ public class BotServices {
                     return "/test";
                 }
                 case 5 -> {
-                    return "/getTrack";
+                    return "/gettrack";
                 }
                 default -> {
                     return "";
