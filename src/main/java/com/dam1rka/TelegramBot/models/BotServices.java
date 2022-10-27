@@ -69,10 +69,14 @@ public class BotServices {
         }
     }
 
-    @Autowired
-    RegistrationService registrationService;
+    private final RegistrationService registrationService;
 
+    private final GetTrackService getTrackService;
 
+    public BotServices(RegistrationService registrationService, GetTrackService getTrackService) {
+        this.registrationService = registrationService;
+        this.getTrackService = getTrackService;
+    }
 
     public ITelegramService getService(Commands command) {
         switch (command) {
@@ -89,7 +93,7 @@ public class BotServices {
                 return new TestService();
             }
             case getTrack -> {
-                return new GetTrackService();
+                return getTrackService;
             }
             default -> {
                 return new TelegramServiceImpl();
