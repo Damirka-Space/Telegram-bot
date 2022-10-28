@@ -21,6 +21,8 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework:spring-test'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.telegram:telegrambots:6.1.0'
 	implementation 'com.vdurmont:emoji-java:5.1.1'

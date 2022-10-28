@@ -14,7 +14,8 @@ public class BotServices {
         register,
         myData,
         test,
-        getTrack;
+        getTrack,
+        uploadAlbum;
         @Override
         public String toString() {
             switch (ordinal()) {
@@ -35,6 +36,9 @@ public class BotServices {
                 }
                 case 5 -> {
                     return "/gettrack";
+                }
+                case 6 -> {
+                    return "/uploadalbum";
                 }
                 default -> {
                     return "";
@@ -62,6 +66,9 @@ public class BotServices {
                 case 5 -> {
                     return "get track from server";
                 }
+                case 6 -> {
+                    return "upload album to server";
+                }
                 default -> {
                     return "";
                 }
@@ -70,12 +77,13 @@ public class BotServices {
     }
 
     private final RegistrationService registrationService;
-
     private final GetTrackService getTrackService;
+    private final UploadTrackService uploadTrackService;
 
-    public BotServices(RegistrationService registrationService, GetTrackService getTrackService) {
+    public BotServices(RegistrationService registrationService, GetTrackService getTrackService, UploadTrackService uploadTrackService) {
         this.registrationService = registrationService;
         this.getTrackService = getTrackService;
+        this.uploadTrackService = uploadTrackService;
     }
 
     public ITelegramService getService(Commands command) {
@@ -94,6 +102,9 @@ public class BotServices {
             }
             case getTrack -> {
                 return getTrackService;
+            }
+            case uploadAlbum -> {
+                return uploadTrackService;
             }
             default -> {
                 return new TelegramServiceImpl();
