@@ -7,13 +7,20 @@ import com.dam1rka.TelegramBot.models.upload.UserUploadAlbum;
 import com.dam1rka.TelegramBot.repositories.UserRepository;
 import com.dam1rka.TelegramBot.services.TelegramBot;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
+import com.google.gson.Gson;
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Audio;
@@ -29,10 +36,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 
 @Component
@@ -40,12 +44,15 @@ public class UploadTrackService extends TelegramServiceImpl {
 
     @Value("${files.dir}")
     private String filesDir;
+
+    private final WebClient webClient;
     private final UserRepository userRepository;
 
     private final HashMap<Long, UserUploadAlbum> users = new HashMap<>();
 
-    public UploadTrackService(UserRepository userRepository) {
+    public UploadTrackService(UserRepository userRepository, WebClient webClient) {
         this.userRepository = userRepository;
+        this.webClient = webClient;
     }
 
     private void sendMessage(TelegramBot bot, Long chatId, String text, boolean showAnswers) {
@@ -93,7 +100,7 @@ public class UploadTrackService extends TelegramServiceImpl {
     private java.io.File downloadFile(TelegramBot bot, String fileId, String localFilePath) throws IOException, TelegramApiException {
         GetFile getFile = new GetFile();
         getFile.setFileId(fileId);
-        File file = bot.execute(getFile);;
+        File file = bot.execute(getFile);
         java.io.File localFile = new java.io.File(localFilePath);
         InputStream is = new URL(file.getFileUrl(bot.getBotToken())).openStream();
         FileUtils.copyInputStreamToFile(is, localFile);
@@ -152,6 +159,12 @@ public class UploadTrackService extends TelegramServiceImpl {
                     sendMessage(bot, chatId, "The next one is art! Send me your image (only as document!)", false);
                     user.setState(UserUploadAlbum.State.UploadArt);
                 }
+                case UploadArt -> {
+                    if (!update.getMessage().hasDocument()) {
+                        sendMessage(bot, chatId, "Please, send photo as document!", false);
+                        return true;
+                    }
+                }
                 case UploadTrackEnterTitle -> {
                     List<TrackUploadNewDto> tracks = uploadDto.getTracks();
                     TrackUploadNewDto track = new TrackUploadNewDto();
@@ -168,6 +181,12 @@ public class UploadTrackService extends TelegramServiceImpl {
                     sendMessage(bot, chatId, EmojiParser.parseToUnicode("Last is file, send me track! :musical_note:"), false);
                     user.setState(UserUploadAlbum.State.UploadTrack);
                 }
+                case UploadTrack -> {
+                    if (!update.getMessage().hasAudio()) {
+                        sendMessage(bot, chatId, "Please, send track", false);
+                        return true;
+                    }
+                }
                 case UploadTrackEnd -> {
                     if(update.getMessage().getText().equals("Yes")) {
                         sendMessage(bot, chatId, "Okay, let's begin!", false);
@@ -183,11 +202,15 @@ public class UploadTrackService extends TelegramServiceImpl {
                 }
                 case End -> {
                     if(update.getMessage().getText().equals("Yes")) {
-                        sendMessage(bot, chatId, "Got it, send to server...", false);
-                        sendMessage(bot, chatId, EmojiParser.parseToUnicode("spooky sent :ghost:"), false);
+                        sendMessage(bot, chatId, EmojiParser.parseToUnicode("Got it, send to server... :ghost:"), false);
+                        sendToServer(bot, chatId, user);
                     } else {
                         sendMessage(bot, chatId, "Okay, I don't like it too)", false);
                     }
+                    user.setUser(null);
+                    user.setState(null);
+                    user.setUploadDto(null);
+                    users.remove(telegramId);
                 }
             }
             return true;
@@ -217,7 +240,7 @@ public class UploadTrackService extends TelegramServiceImpl {
                         FileInputStream input = new FileInputStream(file);
                         MultipartFile image = new MockMultipartFile(uploadDto.getTitle(),
                                 file.getName(), "image/jpeg", IOUtils.toByteArray(input));
-                        uploadDto.setImage(image);
+                        uploadDto.setImage(image.getBytes());
 
                         user.setState(UserUploadAlbum.State.UploadTrackEnterTitle);
                         sendMessage(bot, chatId, "The last one is tracks.. Send me tracks!", false);
@@ -239,7 +262,7 @@ public class UploadTrackService extends TelegramServiceImpl {
                         FileInputStream input = new FileInputStream(file);
                         MultipartFile trackFile = new MockMultipartFile(track.getTitle(),
                                 file.getName(), "audio/mpeg", IOUtils.toByteArray(input));
-                        track.setTrack(trackFile);
+                        track.setTrack(trackFile.getBytes());
 
                         user.setState(UserUploadAlbum.State.UploadTrackEnd);
                         sendMessage(bot, chatId, "Do you want to upload another? (Yes/No)", true);
@@ -252,5 +275,49 @@ public class UploadTrackService extends TelegramServiceImpl {
         }
 
         return false;
+    }
+    private void sendToServer(TelegramBot bot, Long charId, UserUploadAlbum user) {
+        try {
+            MultiValueMap<String, HttpEntity<?>> res = fromAlbum(user.getUploadDto());
+
+            String v = webClient.post().uri("album/upload/")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(BodyInserters.fromMultipartData(res))
+                    .retrieve().bodyToMono(String.class).block();
+
+            SendMessage msg = new SendMessage();
+            msg.setChatId(charId);
+            msg.setText(EmojiParser.parseToUnicode("Album successfully sent! :fire:"));
+            bot.execute(msg);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+
+            SendMessage msg = new SendMessage();
+            msg.setChatId(charId);
+            msg.setText("Can't send album - " + e.getMessage());
+
+            try {
+                bot.execute(msg);
+            } catch (TelegramApiException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    private MultiValueMap<String, HttpEntity<?>> fromAlbum(AlbumUploadDto uploadDto) {
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("title", uploadDto.getTitle());
+        builder.part("author", uploadDto.getAuthor());
+        builder.part("genre", uploadDto.getGenre());
+
+        Gson gson = new Gson();
+
+        String image = gson.toJson(uploadDto.getImage());
+        String tracks = gson.toJson(uploadDto.getTracks());
+
+        builder.part("image", image);
+        builder.part("tracks", tracks);
+
+        return builder.build();
     }
 }
