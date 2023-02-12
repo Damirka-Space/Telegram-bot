@@ -19,6 +19,9 @@ public class GetTrackService extends TelegramServiceImpl {
     @Value("${track.dir}")
     private String trackDir;
 
+    @Value("${fs.url}")
+    private String fileServer;
+
     @Override
     public void handleCommand(Update update, TelegramBot bot) {
         super.handleCommand(update, bot);
@@ -39,10 +42,7 @@ public class GetTrackService extends TelegramServiceImpl {
         audio.setChatId(update.getMessage().getChatId());
 
         if(StringUtils.isNumeric(update.getMessage().getText())) {
-            String title = "Track-" + update.getMessage().getText() + ".mp3";
-//            audio.setTitle(title);
-            audio.setAudio(new InputFile(
-                    new File(trackDir + title)));
+            audio.setAudio(new InputFile(fileServer + "/tracks/" + update.getMessage().getText()));
 
             sendAudio(update, bot, audio);
             return true;
