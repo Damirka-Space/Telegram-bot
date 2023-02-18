@@ -13,6 +13,7 @@ public class AlbumUploadDto {
     private String genre;
     private byte[] image;
     private List<TrackUploadNewDto> tracks = new LinkedList<>();
+
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("");
         stringBuilder.append("Title: ").append(title).append("\n");

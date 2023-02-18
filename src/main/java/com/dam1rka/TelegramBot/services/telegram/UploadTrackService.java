@@ -111,8 +111,6 @@ public class UploadTrackService extends TelegramServiceImpl {
     public void handleCommand(Update update, TelegramBot bot) {
         super.handleCommand(update, bot);
 
-        // TODO: make check privileges of user
-
         Long telegramId = update.getMessage().getFrom().getId();
         Long chatId = update.getMessage().getChatId();
         UserEntity user = userRepository.findByTelegramId(telegramId);
@@ -220,6 +218,54 @@ public class UploadTrackService extends TelegramServiceImpl {
 
     @Override
     public boolean handleOther(Update update, TelegramBot bot) {
+        if(Objects.nonNull(update.getEditedMessage())) {
+            Long telegramId = update.getEditedMessage().getFrom().getId();
+
+            if(!users.containsKey(telegramId))
+                return false;
+
+            UserUploadAlbum user = users.get(telegramId);
+            AlbumUploadDto uploadDto = user.getUploadDto();
+
+            String msg = update.getEditedMessage().getText();
+            if(Objects.nonNull(msg))
+            {
+                switch (user.getState()) {
+                    case EnterAuthors -> uploadDto.setTitle(msg);
+                    case EnterGenre -> uploadDto.setAuthor(msg);
+                    case UploadArt -> uploadDto.setGenre(msg);
+                    case UploadTrackEnterAuthor -> uploadDto.getTracks().get(uploadDto.getTracks().size() - 1).setTitle(msg);
+                    case UploadTrack -> uploadDto.getTracks().get(uploadDto.getTracks().size() - 1).setAuthor(msg);
+                }
+            }
+            else if(Objects.nonNull(update.getEditedMessage().getDocument()))
+            {
+                Document img = update.getMessage().getDocument();
+                try {
+                    java.io.File file = downloadDocument(bot, img, filesDir + img.getFileUniqueId() + ".jpg");
+                    FileInputStream input = new FileInputStream(file);
+                    MultipartFile image = new MockMultipartFile(uploadDto.getTitle(),
+                            file.getName(), "image/jpeg", IOUtils.toByteArray(input));
+                    uploadDto.setImage(image.getBytes());
+                } catch (IOException | TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            else if(Objects.nonNull(update.getEditedMessage().getAudio()))
+            {
+                Audio tr = update.getMessage().getAudio();
+                try {
+                    java.io.File file = downloadAudio(bot, tr, filesDir + tr.getFileUniqueId() + ".mp3");
+                    FileInputStream input = new FileInputStream(file);
+                    uploadDto.getTracks().get(uploadDto.getTracks().size() - 1).setTrack(IOUtils.toByteArray(input));
+
+                } catch (IOException | TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return true;
+        }
+
         Long telegramId = update.getMessage().getFrom().getId();
         Long chatId = update.getMessage().getChatId();
         if(users.containsKey(telegramId)) {
@@ -311,12 +357,11 @@ public class UploadTrackService extends TelegramServiceImpl {
         builder.part("genre", uploadDto.getGenre());
 
         Gson gson = new Gson();
-
-        String image = gson.toJson(uploadDto.getImage());
         String tracks = gson.toJson(uploadDto.getTracks());
+        String image = gson.toJson(uploadDto.getImage());
 
-        builder.part("image", image);
         builder.part("tracks", tracks);
+        builder.part("image", image);
 
         return builder.build();
     }

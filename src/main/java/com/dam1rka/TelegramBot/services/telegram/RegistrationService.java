@@ -69,7 +69,7 @@ public class RegistrationService extends TelegramServiceImpl {
 
     @Override
     public boolean handleOther(Update update, TelegramBot bot) {
-        if(update.getMessage().hasContact()) {
+        if(Objects.nonNull(update.getMessage()) && update.getMessage().hasContact()) {
             Contact contact = update.getMessage().getContact();
 
             if(Objects.isNull(userRepository.findByTelegramId(contact.getUserId()))) {
