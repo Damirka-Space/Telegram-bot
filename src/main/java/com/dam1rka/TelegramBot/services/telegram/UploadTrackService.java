@@ -9,6 +9,7 @@ import com.dam1rka.TelegramBot.services.TelegramBot;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
 import com.google.gson.Gson;
 import com.vdurmont.emoji.EmojiParser;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,22 +41,18 @@ import java.util.*;
 
 
 @Component
+@RequiredArgsConstructor
 public class UploadTrackService extends TelegramServiceImpl {
 
     @Value("${files.dir}")
-    private String filesDir;
+    protected String filesDir;
 
-    private final WebClient webClient;
-    private final UserRepository userRepository;
+    protected final WebClient webClient;
+    protected final UserRepository userRepository;
 
-    private final HashMap<Long, UserUploadAlbum> users = new HashMap<>();
+    protected final HashMap<Long, UserUploadAlbum> users = new HashMap<>();
 
-    public UploadTrackService(UserRepository userRepository, WebClient webClient) {
-        this.userRepository = userRepository;
-        this.webClient = webClient;
-    }
-
-    private void sendMessage(TelegramBot bot, Long chatId, String text, boolean showAnswers) {
+    protected void sendMessage(TelegramBot bot, Long chatId, String text, boolean showAnswers) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(text);
@@ -89,15 +86,15 @@ public class UploadTrackService extends TelegramServiceImpl {
         }
     }
 
-    private java.io.File downloadDocument(TelegramBot bot, Document document, String localFilePath) throws IOException, TelegramApiException {
+    protected java.io.File downloadDocument(TelegramBot bot, Document document, String localFilePath) throws IOException, TelegramApiException {
         return downloadFile(bot, document.getFileId(), localFilePath);
     }
 
-    private java.io.File downloadAudio(TelegramBot bot, Audio audio, String localFilePath) throws TelegramApiException, IOException {
+    protected java.io.File downloadAudio(TelegramBot bot, Audio audio, String localFilePath) throws TelegramApiException, IOException {
         return downloadFile(bot, audio.getFileId(), localFilePath);
     }
 
-    private java.io.File downloadFile(TelegramBot bot, String fileId, String localFilePath) throws IOException, TelegramApiException {
+    protected java.io.File downloadFile(TelegramBot bot, String fileId, String localFilePath) throws IOException, TelegramApiException {
         GetFile getFile = new GetFile();
         getFile.setFileId(fileId);
         File file = bot.execute(getFile);
@@ -322,7 +319,7 @@ public class UploadTrackService extends TelegramServiceImpl {
 
         return false;
     }
-    private void sendToServer(TelegramBot bot, Long charId, UserUploadAlbum user) {
+    protected void sendToServer(TelegramBot bot, Long charId, UserUploadAlbum user) {
         try {
             MultiValueMap<String, HttpEntity<?>> res = fromAlbum(user.getUploadDto());
 

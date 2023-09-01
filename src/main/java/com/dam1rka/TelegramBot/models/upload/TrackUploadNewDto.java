@@ -8,10 +8,12 @@ public class TrackUploadNewDto  {
     private String author;
 
     private byte[] track;
+    private Integer duration;
 
     public String toString() {
         return "" + "Title: " + title + "\n \t" +
                 "Author: " + author + "\n \t" +
-                "Track: " + title;
+                "Size: " + track.length + "\n \t" +
+                "Duration: " + duration;
     }
 }

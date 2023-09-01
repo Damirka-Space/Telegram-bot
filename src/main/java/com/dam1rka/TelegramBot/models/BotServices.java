@@ -3,10 +3,12 @@ package com.dam1rka.TelegramBot.models;
 import com.dam1rka.TelegramBot.services.interfaces.ITelegramService;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
 import com.dam1rka.TelegramBot.services.telegram.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class BotServices {
     public enum Commands {
         start,
@@ -15,7 +17,8 @@ public class BotServices {
         myData,
         test,
         getTrack,
-        uploadAlbum;
+        uploadAlbum,
+        fastUpload;
         @Override
         public String toString() {
             switch (ordinal()) {
@@ -39,6 +42,9 @@ public class BotServices {
                 }
                 case 6 -> {
                     return "/uploadalbum";
+                }
+                case 7 -> {
+                    return "/fastupload";
                 }
                 default -> {
                     return "";
@@ -69,6 +75,9 @@ public class BotServices {
                 case 6 -> {
                     return "upload album to server";
                 }
+                case 7 -> {
+                    return "fast uploading album using metadata";
+                }
                 default -> {
                     return "";
                 }
@@ -80,11 +89,7 @@ public class BotServices {
     private final GetTrackService getTrackService;
     private final UploadTrackService uploadTrackService;
 
-    public BotServices(RegistrationService registrationService, GetTrackService getTrackService, UploadTrackService uploadTrackService) {
-        this.registrationService = registrationService;
-        this.getTrackService = getTrackService;
-        this.uploadTrackService = uploadTrackService;
-    }
+    private final FastUploadService fastUploadService;
 
     public ITelegramService getService(Commands command) {
         switch (command) {
@@ -105,6 +110,9 @@ public class BotServices {
             }
             case uploadAlbum -> {
                 return uploadTrackService;
+            }
+            case fastUpload -> {
+                return fastUploadService;
             }
             default -> {
                 return new TelegramServiceImpl();

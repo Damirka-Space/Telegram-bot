@@ -17,6 +17,9 @@ public class UserUploadAlbum {
         UploadTrackEnterAuthor,
         UploadTrack,
         UploadTrackEnd,
+
+        FastUploadStart,
+        FastUploadEnd,
         
         End,
     }

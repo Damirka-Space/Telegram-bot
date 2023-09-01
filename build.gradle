@@ -2,7 +2,6 @@ plugins {
 	id 'org.springframework.boot' version '2.7.5'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 	id 'java'
-	id 'org.springframework.experimental.aot' version '0.12.1'
 }
 
 group = 'com.dam1rka'
@@ -29,6 +28,7 @@ dependencies {
 	implementation 'com.vdurmont:emoji-java:5.1.1'
 	implementation 'org.telegram:telegrambots-abilities:6.1.0'
 	implementation 'com.google.code.gson:gson'
+	implementation 'com.mpatric:mp3agic:0.9.1'
 	compileOnly 'org.projectlombok:lombok'
 	compileOnly 'org.apache.commons:commons-lang3'
 	annotationProcessor 'org.projectlombok:lombok'
