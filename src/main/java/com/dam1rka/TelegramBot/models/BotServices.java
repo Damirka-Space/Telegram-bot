@@ -4,7 +4,6 @@ import com.dam1rka.TelegramBot.services.interfaces.ITelegramService;
 import com.dam1rka.TelegramBot.services.interfaces.TelegramServiceImpl;
 import com.dam1rka.TelegramBot.services.telegram.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component

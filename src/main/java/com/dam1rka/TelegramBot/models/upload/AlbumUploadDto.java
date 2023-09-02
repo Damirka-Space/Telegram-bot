@@ -1,7 +1,6 @@
 package com.dam1rka.TelegramBot.models.upload;
 
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.LinkedList;
 import java.util.List;

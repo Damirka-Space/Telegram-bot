@@ -15,6 +15,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -101,6 +102,7 @@ public class FastUploadService extends UploadTrackService {
                         MultipartFile image = new MockMultipartFile(uploadDto.getTitle(),
                                 file.getName(), "image/jpeg", IOUtils.toByteArray(input));
                         uploadDto.setImage(image.getBytes());
+                        sendMessage(bot, chatId, "Downloaded image", false);
                     } catch (IOException | TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
@@ -131,6 +133,8 @@ public class FastUploadService extends UploadTrackService {
                             track.setTrack(trackFile.getBytes());
 
                             uploadDto.getTracks().add(track);
+
+                            sendMessage(bot, chatId, "Downloaded track - " + track.getTitle(), false);
                         }
 
                     } catch (IOException | TelegramApiException | InvalidDataException | UnsupportedTagException e) {

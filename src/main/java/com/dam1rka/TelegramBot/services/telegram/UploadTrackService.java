@@ -24,6 +24,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.File;
@@ -254,7 +255,9 @@ public class UploadTrackService extends TelegramServiceImpl {
                 try {
                     java.io.File file = downloadAudio(bot, tr, filesDir + tr.getFileUniqueId() + ".mp3");
                     FileInputStream input = new FileInputStream(file);
-                    uploadDto.getTracks().get(uploadDto.getTracks().size() - 1).setTrack(IOUtils.toByteArray(input));
+                    MultipartFile track = new MockMultipartFile(uploadDto.getTitle(),
+                            file.getName(), "audio/mpeg", IOUtils.toByteArray(input));
+                    uploadDto.getTracks().get(uploadDto.getTracks().size() - 1).setTrack(track.getBytes());
 
                 } catch (IOException | TelegramApiException e) {
                     throw new RuntimeException(e);
