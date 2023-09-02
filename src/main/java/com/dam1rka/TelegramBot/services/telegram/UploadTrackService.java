@@ -125,6 +125,7 @@ public class UploadTrackService extends TelegramServiceImpl {
             users.put(telegramId, userUploadAlbum);
         } else {
             users.get(telegramId).setState(UserUploadAlbum.State.EnterTitle);
+            users.get(telegramId).setUploadDto(new AlbumUploadDto());
         }
 
         sendMessage(bot, chatId, EmojiParser.parseToUnicode("You started service of album uploading... :guitar:"), false);

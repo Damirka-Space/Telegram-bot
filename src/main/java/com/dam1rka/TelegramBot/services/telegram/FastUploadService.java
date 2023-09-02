@@ -15,7 +15,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -51,6 +50,7 @@ public class FastUploadService extends UploadTrackService {
             users.put(telegramId, userUploadAlbum);
         } else {
             users.get(telegramId).setState(UserUploadAlbum.State.FastUploadStart);
+            users.get(telegramId).setUploadDto(new AlbumUploadDto());
         }
 
         sendMessage(bot, chatId, "You're in, please send me all track from one album (with metadata!) and after send !upload message to upload to the server", false);
